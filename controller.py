@@ -4,12 +4,9 @@
     inserting it into a queue.
 
     (thread #2)
-    listening on web socket.
-
-    (thread #3)
     grabs item from the queue and updates the graph weight values.
 
-    (thread #4)
+    (thread #3)
     runs bellman-ford on the graph to find negative cost cycles.
 
 """
@@ -20,6 +17,7 @@ from graph import Graph
 from gdaxAdapter import GdaxAdapter
 import json
 import threading
+import time
 
 
 class Controller:
@@ -51,8 +49,10 @@ class Controller:
     def find_neg_cycles(self):
         update_flag = self.q.qsize()        # check flag, so algo is called only when graph is updated. todo:Check this
         while True:
+            time.sleep(0.0001)
             while self.q.not_empty:
                 if update_flag == self.q.qsize():
+                    time.sleep(0.0001)
                     continue
                 paths = []
                 for v in self.g.graph:      # check if asset type that is in graph. *Can be changed to only perform
@@ -78,6 +78,7 @@ class Controller:
 
     def consume_data(self):
         while True:
+            time.sleep(0.0001)
             while not self.q.empty():
                 try:
                     j = json.loads(self.q.get())

@@ -43,12 +43,6 @@ class GdaxAdapter:
     def on_open(self, ws):
         self.initMessage(ws)
 
-        def run(*args):
-            while True:
-                None
-
-        thread.start_new_thread(run, ())
-
     # Process the data
     def process_q(self):
         while True:
