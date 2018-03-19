@@ -93,7 +93,7 @@ class Controller:
                 u = pair[0]
                 v = pair[1]
                 w = float(tick['price'])
-                self.g.set_weight(u, v, w)
+                self.g.add_edge(u, v, w)
             except Exception as e:
                 print(e)
 

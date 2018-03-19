@@ -1,3 +1,7 @@
+'''
+
+'''
+
 import math
 
 
@@ -7,17 +11,13 @@ class Graph:
         self.graph = dict()
 
     def add_edge(self, v1, v2, w):
+        print("updating: " + v1 + " -> " + v2 + " = " + str(w))
         if v1 not in self.graph:
             self.graph[v1] = {}
         self.graph[v1][v2] = -math.log(w)
         if v2 not in self.graph:
             self.graph[v2] = {}
         self.graph[v2][v1] = math.log(w)
-
-    def set_weight(self, u, v, w):
-        print("updating: " + u + " -> " + v + " = " + str(w))
-        self.graph[u][v] = -math.log(w)
-        self.graph[v][u] = math.log(w)
 
     def get_vertices(self):
         vertices = []
