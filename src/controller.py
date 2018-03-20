@@ -23,7 +23,8 @@ import time
 class Controller:
 
     def __init__(self):
-        self.q = Queue()
+        self.q = Queue()           # this hold tick messages
+        self.q_graph = Queue()     # this holds instances of a graph
         self.g = Graph()
         self.g_dax = None
         self.init_graph()
@@ -42,30 +43,39 @@ class Controller:
         self.g_dax = GdaxAdapter(self.q)
 
     def start(self):
-        threading.Thread(target=self.start_data_feed).start()
-        threading.Thread(target=self.consume_data).start()
-        threading.Thread(target=self.find_neg_cycles).start()
+        thread_data = threading.Thread(target=self.start_data_feed)
+        thread_consume = threading.Thread(target=self.consume_data)
+        thread_algo = threading.Thread(target=self.find_neg_cycles)
 
-    def find_neg_cycles(self):
-        update_flag = self.q.qsize()        # check flag, so algo is called only when graph is updated. todo:Check this
+        thread_data.daemon = True
+        thread_consume.daemon = True
+        thread_algo.daemon = True
+
+        thread_data.start()
+        thread_consume.start()
+        thread_algo.start()
+
         while True:
-            time.sleep(0.0001)
-            while self.q.not_empty:
-                if update_flag == self.q.qsize():
-                    time.sleep(0.0001)
-                    continue
+            time.sleep(1)
+
+    # todo: use queue messaging passing instead of polling
+    def find_neg_cycles(self):
+        while True:
+            try:
+                graph = self.q_graph.get(block=True)
                 paths = []
-                for v in self.g.graph:      # check if asset type that is in graph. *Can be changed to only perform
+                for v in graph:      # check if asset type that is in graph. *Can be changed to only perform
                     path = None                                                    # the asset on hand
                     try:
-                        path = self.g.bellman_ford(v)
+                        path = self.g.bellman_ford(v, graph)
                     except Exception as e:
                         None                # todo: handle the exception
                     if path not in paths and path is not None:  # todo: check this, may not filter out equivalent paths
                         paths.append(path)
                 if len(paths) > 0:
                     print(paths + self.calculate_dist(paths))
-                update_flag = self.q.qsize()
+            except Exception as e:
+                print(e)
 
     def calculate_dist(self, paths):
         dist_list = []
@@ -78,13 +88,12 @@ class Controller:
 
     def consume_data(self):
         while True:
-            time.sleep(0.0001)
-            while not self.q.empty():
-                try:
-                    j = json.loads(self.q.get())
-                    self.update_graph(j)
-                except Exception as e:
-                    print(e)
+            #time.sleep(0.0001)
+            try:
+                j = json.loads(self.q.get(block=True))
+                self.update_graph(j)
+            except Exception as e:
+                print(e)
 
     def update_graph(self, tick):
         if 'type' in tick and tick['type'] == 'ticker':
@@ -94,6 +103,7 @@ class Controller:
                 v = pair[1]
                 w = float(tick['price'])
                 self.g.add_edge(u, v, w)
+                self.q_graph.put(self.g.graph, block=False)
             except Exception as e:
                 print(e)
 

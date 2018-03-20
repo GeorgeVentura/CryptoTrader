@@ -1,9 +1,5 @@
 import websocket
 import json
-try:
-    import thread
-except ImportError:
-    import _thread as thread
 from queue import Queue
 
 
@@ -31,7 +27,7 @@ class GdaxAdapter:
         self.ws.send(message_json)
 
     def on_message(self, ws, message):
-        self.q.put(message)
+        self.q.put(message, block=False)
         #print(message)
 
     def on_error(self, ws, error):
@@ -42,21 +38,6 @@ class GdaxAdapter:
 
     def on_open(self, ws):
         self.initMessage(ws)
-
-    # Process the data
-    def process_q(self):
-        while True:
-            while not self.q.empty():
-                j = json.loads(q.get())
-                try:
-                    print(j)
-                except Exception as e:
-                    print(e)
-                #self.write_to_txt_file(self.q.get())
-
-    def write_to_txt_file(self, msg):
-        with open('orderbook.txt', 'a') as f:
-            f.write(msg)
 
 
 if __name__ == "__main__":
