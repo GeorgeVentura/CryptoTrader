@@ -78,13 +78,12 @@ class Controller:
 
     def consume_data(self):
         while True:
-            time.sleep(0.0001)
-            while not self.q.empty():
-                try:
-                    j = json.loads(self.q.get())
-                    self.update_graph(j)
-                except Exception as e:
-                    print(e)
+            #time.sleep(0.0001)
+            try:
+                j = json.loads(self.q.get(block=True))
+                self.update_graph(j)
+            except Exception as e:
+                print(e)
 
     def update_graph(self, tick):
         if 'type' in tick and tick['type'] == 'ticker':
