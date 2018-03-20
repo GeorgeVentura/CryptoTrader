@@ -19,19 +19,21 @@ class Graph:
             self.graph[v2] = {}
         self.graph[v2][v1] = math.log(w)
 
-    def get_vertices(self):
-        vertices = []
-        for k in self.graph.keys():
-            vertices.append(k)
-        return vertices
-
     def get_edges(self, vertex):
         return self.graph[vertex]
 
     def get_edge_weight(self, u, v):
         return self.graph[u][v]
 
-    def retrace_loop(self, p, start):
+    @staticmethod
+    def get_vertices(graph):
+        vertices = []
+        for k in graph.keys():
+            vertices.append(k)
+        return vertices
+
+    @staticmethod
+    def retrace_loop(p, start):
         arbitrageLoop = [start]
         prev_node = start
         while True:
@@ -44,11 +46,12 @@ class Graph:
                 #self.export_DOT_path(list(reversed(arbitrageLoop)))
                 return list(reversed(arbitrageLoop))
 
-    def bellman_ford(self, src):
+    @staticmethod
+    def bellman_ford(src, graph):
 
         dist = dict()
         pred = dict()
-        vertices = self.get_vertices()
+        vertices = Graph.get_vertices(graph)
 
         # Initialize distances from src to infinity.
         for vertex in vertices:
@@ -57,20 +60,21 @@ class Graph:
         dist[src] = 0
 
         # Relax all edges |V| - 1 times.
-        for i in range(len(self.graph) - 1):
-            for u in self.graph:
-                for v in self.graph[u]:
-                    self.relax(u, v, dist, pred)
+        for i in range(len(graph) - 1):
+            for u in graph:
+                for v in graph[u]:
+                    Graph.relax(u, v, dist, pred, graph)
 
         # negative cycles
-        for u in self.graph:
-            for v in self.graph[u]:
-                if dist[v] < dist[u] + self.graph[u][v]:
-                    return self.retrace_loop(pred, v)
+        for u in graph:
+            for v in graph[u]:
+                if dist[v] < dist[u] + graph[u][v]:
+                    return Graph.retrace_loop(pred, v)
         return None
 
-    def relax(self, node, neighbour, d, p):
-        dist = self.graph[node][neighbour]
+    @staticmethod
+    def relax(node, neighbour, d, p, graph):
+        dist = graph[node][neighbour]
         if d[neighbour] > d[node] + dist:
             d[neighbour] = d[node] + dist
             p[neighbour] = node
